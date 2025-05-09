@@ -2,7 +2,7 @@
 int main()
 {
 	uint16_t a = 0;
-	client objiective(17804, "192.168.3.125");
+	client objiective(17804, "192.168.3.137");
 	objiective.subscribe(a, 0xaf, 100, 60000);
 	uint16_t b = 0;
 	objiective.pause_action(b, 0x01, 0x08, 0x01);

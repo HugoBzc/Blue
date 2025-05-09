@@ -105,17 +105,19 @@ void client::pause_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint8_t sto
 	pause_action.param1 = stop;
 
 	// 发送数据
-	int packetLen = sizeof(Header) + sizeof(Action);
-	std::vector<uint8_t> buf(packetLen);
-	memcpy(buf.data(), &header, sizeof(Header));
-	memcpy(buf.data() + sizeof(Header), &pause_action, sizeof(Action));
-
-	int sentBytes = sendto(sock,
-		reinterpret_cast<char*>(buf.data()),
-		packetLen,
+	char buffer[sizeof(Header) + sizeof(Action)];
+	memcpy(buffer, &header, sizeof(Header));
+	memcpy(buffer + sizeof(Header), &pause_action, sizeof(Action));
+	int sentBytes = sendto
+	(
+		sock,
+		buffer,
+		sizeof(buffer),
 		0,
 		(sockaddr*)&destAddr,
-		sizeof(destAddr));
+		sizeof(destAddr)
+	);
+
 	if (sentBytes == SOCKET_ERROR)
 	{
 		std::cerr << "发送失败: " << WSAGetLastError() << std::endl;
@@ -146,43 +148,23 @@ void client::resume_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint32_t I
 	memcpy(header.a10, Header_Array2, sizeof(header.a10)); // 填充a10数组
 
 	//构造数据区
-	Action pause_action{};
-	memset(&pause_action, 0, sizeof(Data)); // 清空保留字段
-	pause_action.type = (uint16_t)0x02;
-	pause_action.method = way;
-	pause_action.preserve1 = (uint8_t)0x00;
-	pause_action.dzID = dzid;
-	pause_action.param_size = (uint8_t)0x08;
-	pause_action.preserve2[0] = (uint8_t)0x00;//预留3个00
-	pause_action.preserve2[1] = (uint8_t)0x00;
-	pause_action.preserve2[2] = (uint8_t)0x00;
-	pause_action.param1 = ID;
-	pause_action.param2 = KEY;
-	// 发送数据
-	int packetLen = sizeof(Header) + sizeof(Action);
-	std::vector<uint8_t> buf(packetLen);
-	memcpy(buf.data(), &header, sizeof(Header));
-	memcpy(buf.data() + sizeof(Header), &pause_action, sizeof(Action));
+	Action resume_action{};
+	memset(&resume_action, 0, sizeof(Action)); // 清空保留字段
+	resume_action.type = (uint16_t)0x02;
+	resume_action.method = way;
+	resume_action.preserve1 = (uint8_t)0x00;
+	resume_action.dzID = dzid;
+	resume_action.param_size = (uint8_t)0x08;
+	resume_action.preserve2[0] = (uint8_t)0x00;//预留3个00
+	resume_action.preserve2[1] = (uint8_t)0x00;
+	resume_action.preserve2[2] = (uint8_t)0x00;
+	resume_action.param1 = ID;
+	resume_action.param2 = KEY;
 
-	int sentBytes = sendto(sock,
-		reinterpret_cast<char*>(buf.data()),
-		packetLen,
-		0,
-		(sockaddr*)&destAddr,
-		sizeof(destAddr));
-	if (sentBytes == SOCKET_ERROR)
-	{
-		std::cerr << "发送失败: " << WSAGetLastError() << std::endl;
-	}
-	else
-	{
-		std::cout << "已发送" << sentBytes << "字节数据" << std::endl;
-	}
-	/*char buffer[sizeof(Header) + sizeof(Action)];
+	// 发送数据
+	char buffer[sizeof(Header) + sizeof(Action)];
 	memcpy(buffer, &header, sizeof(Header));
-	memcpy(buffer + sizeof(Header), &pause_action, sizeof(Action));
-
-	// 发送数据
+	memcpy(buffer + sizeof(Header), &resume_action, sizeof(Action));
 	int sentBytes = sendto
 	(
 		sock,
@@ -192,6 +174,7 @@ void client::resume_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint32_t I
 		(sockaddr*)&destAddr,
 		sizeof(destAddr)
 	);
+
 	if (sentBytes == SOCKET_ERROR)
 	{
 		std::cerr << "发送失败: " << WSAGetLastError() << std::endl;
@@ -199,7 +182,7 @@ void client::resume_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint32_t I
 	else
 	{
 		std::cout << "已发送" << sentBytes << "字节数据" << std::endl;
-	}*/
+	}
 }
 void client::cancel_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint16_t ID, uint8_t stop)
 {
@@ -222,25 +205,23 @@ void client::cancel_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint16_t I
 	memcpy(header.a10, Header_Array2, sizeof(header.a10)); // 填充a10数组
 
 	//构造数据区
-	Action pause_action{};
-	memset(&pause_action, 0, sizeof(Data)); // 清空保留字段
-	pause_action.type = (uint16_t)0x03;
-	pause_action.method = way;//0 1 2三种
-	pause_action.preserve1 = (uint8_t)0x00;
-	pause_action.dzID = dzid;
-	pause_action.param_size = (uint8_t)0x08;
-	pause_action.preserve2[0] = (uint8_t)0x00;//预留3个00
-	pause_action.preserve2[1] = (uint8_t)0x00;
-	pause_action.preserve2[2] = (uint8_t)0x00;
-	pause_action.param1 = ID;
-	pause_action.param2 = stop;//0为正常 1为立即停止
-	// 发送数据
+	Action cancel_action{};
+	memset(&cancel_action, 0, sizeof(Action)); // 清空保留字段
+	cancel_action.type = (uint16_t)0x03;
+	cancel_action.method = way;//0 1 2三种
+	cancel_action.preserve1 = (uint8_t)0x00;
+	cancel_action.dzID = dzid;
+	cancel_action.param_size = (uint8_t)0x08;
+	cancel_action.preserve2[0] = (uint8_t)0x00;//预留3个00
+	cancel_action.preserve2[1] = (uint8_t)0x00;
+	cancel_action.preserve2[2] = (uint8_t)0x00;
+	cancel_action.param1 = ID;
+	cancel_action.param2 = stop;//0为正常 1为立即停止
 
-	/*char buffer[sizeof(Header) + sizeof(Action)];
+	// 发送数据
+	char buffer[sizeof(Header) + sizeof(Action)];
 	memcpy(buffer, &header, sizeof(Header));
-	memcpy(buffer + sizeof(Header), &pause_action, sizeof(Action));
-
-	// 发送数据
+	memcpy(buffer + sizeof(Header), &cancel_action, sizeof(Action));
 	int sentBytes = sendto
 	(
 		sock,
@@ -250,6 +231,7 @@ void client::cancel_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint16_t I
 		(sockaddr*)&destAddr,
 		sizeof(destAddr)
 	);
+
 	if (sentBytes == SOCKET_ERROR)
 	{
 		std::cerr << "发送失败: " << WSAGetLastError() << std::endl;
@@ -257,7 +239,7 @@ void client::cancel_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint16_t I
 	else
 	{
 		std::cout << "已发送" << sentBytes << "字节数据" << std::endl;
-	}*/
+	}
 }
 void client::pallet_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint32_t move)
 {
@@ -280,43 +262,22 @@ void client::pallet_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint32_t m
 	memcpy(header.a10, Header_Array2, sizeof(header.a10)); // 填充a10数组
 
 	//构造数据区
-	Action pause_action{};
-	memset(&pause_action, 0, sizeof(Data)); // 清空保留字段
-	pause_action.type = (uint16_t)0x16;
-	pause_action.method = way;//0 1 2三种
-	pause_action.preserve1 = (uint8_t)0x00;
-	pause_action.dzID = dzid;
-	pause_action.param_size = (uint8_t)0x04;
-	pause_action.preserve2[0] = (uint8_t)0x00;//预留3个00
-	pause_action.preserve2[1] = (uint8_t)0x00;
-	pause_action.preserve2[2] = (uint8_t)0x00;
-	pause_action.param1 = move;
+	Action pallet_action{};
+	memset(&pallet_action, 0, sizeof(Action)); // 清空保留字段
+	pallet_action.type = (uint16_t)0x16;
+	pallet_action.method = way;//0 1 2三种
+	pallet_action.preserve1 = (uint8_t)0x00;
+	pallet_action.dzID = dzid;
+	pallet_action.param_size = (uint8_t)0x04;
+	pallet_action.preserve2[0] = (uint8_t)0x00;//预留3个00
+	pallet_action.preserve2[1] = (uint8_t)0x00;
+	pallet_action.preserve2[2] = (uint8_t)0x00;
+	pallet_action.param1 = move;
 
 	// 发送数据
-	int packetLen = sizeof(Header) + sizeof(Action);
-	std::vector<uint8_t> buf(packetLen);
-	memcpy(buf.data(), &header, sizeof(Header));
-	memcpy(buf.data() + sizeof(Header), &pause_action, sizeof(Action));
-
-	int sentBytes = sendto(sock,
-		reinterpret_cast<char*>(buf.data()),
-		packetLen,
-		0,
-		(sockaddr*)&destAddr,
-		sizeof(destAddr));
-	if (sentBytes == SOCKET_ERROR)
-	{
-		std::cerr << "发送失败: " << WSAGetLastError() << std::endl;
-	}
-	else
-	{
-		std::cout << "已发送" << sentBytes << "字节数据" << std::endl;
-	}
-	/*char buffer[sizeof(Header) + sizeof(Action)];
+	char buffer[sizeof(Header) + sizeof(Action)];
 	memcpy(buffer, &header, sizeof(Header));
-	memcpy(buffer + sizeof(Header), &pause_action, sizeof(Action));
-
-	// 发送数据
+	memcpy(buffer + sizeof(Header), &pallet_action, sizeof(Action));
 	int sentBytes = sendto
 	(
 		sock,
@@ -326,6 +287,7 @@ void client::pallet_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint32_t m
 		(sockaddr*)&destAddr,
 		sizeof(destAddr)
 	);
+
 	if (sentBytes == SOCKET_ERROR)
 	{
 		std::cerr << "发送失败: " << WSAGetLastError() << std::endl;
@@ -333,7 +295,7 @@ void client::pallet_action(uint16_t& aa4, uint8_t way, uint32_t dzid, uint32_t m
 	else
 	{
 		std::cout << "已发送" << sentBytes << "字节数据" << std::endl;
-	}*/
+	}
 }
 service::service(int com, const char adress[])//构造函数
 {
